@@ -18,7 +18,11 @@
          dbus-open
          dbus-send
          dbus-call
-         dbus-signal)
+         dbus-signal
+         dbus-variant
+         dbus-variant-type
+         dbus-variant-value
+         dbus-variant?)
 
 
 (define/contract (dbus-send bus target path iface method sign . args)

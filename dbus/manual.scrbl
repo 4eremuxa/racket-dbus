@@ -10,7 +10,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
 @defmodule[dbus]
 
 @defproc[(exn:fail:dbus? (v any/c)) boolean?]{
- Determines if value is a D-Bus exception.
+ Determines whether the value is a D-Bus exception.
 }
 
 @defproc[(exn:fail:dbus-name (exn exn:fail:dbus?)) string?]{
@@ -24,7 +24,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
 }
 
 @defproc[(dbus-connection? (v any/c)) boolean?]{
- Determines if value is a D-Bus connection.
+ Determines whether the value is a D-Bus connection.
 }
 
 @defproc[(dbus-send (bus dbus-connection?)
@@ -57,6 +57,28 @@ Linux D-Bus bindings for Racket using libdbus-1.
                     (arg any/c) ...)
          any]{
  Calls remote procedure and returns whatever values it produces.
+}
+
+@defproc[(dbus-variant (sign dbus-signature?)
+                       (arg any/c) ...)
+         dbus-variant?]{
+ Create new variant value.
+
+ Because D-Bus uses eight different numeric types and I don't dare
+ to guess which should we marshal numbers to, you have to create the
+ variant structure yourself.
+}
+
+@defproc[(dbus-variant? (v any/c)) boolean?]{
+ Determine whether the value is a variant.
+}
+
+@defproc[(dbus-variant-type (v dbus-variant?)) dbus-signature?]{
+ Return the variant signature.
+}
+
+@defmodule[(dbus-variant-value (v dbus-variant?)) any/c]{
+ Return the variant value.
 }
 
 @; vim:set ft=scribble sw=2 ts=2 et:
