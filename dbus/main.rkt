@@ -11,7 +11,9 @@
          "ffi.rkt")
 
 
-(provide dbus-connection?
+(provide exn:fail:dbus?
+         exn:fail:dbus-name
+         dbus-connection?
          dbus-signature?
          dbus-open
          dbus-send
