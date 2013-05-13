@@ -17,7 +17,8 @@
          dbus-signature?
          dbus-open
          dbus-send
-         dbus-call)
+         dbus-call
+         dbus-signal)
 
 
 (define/contract (dbus-send bus target path iface method sign . args)
