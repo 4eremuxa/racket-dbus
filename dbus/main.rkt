@@ -19,6 +19,8 @@
          dbus-send
          dbus-call
          dbus-signal
+         dbus-subscribe
+         dbus-unsubscribe
          dbus-variant
          dbus-variant-type
          dbus-variant-value

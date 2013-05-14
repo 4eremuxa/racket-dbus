@@ -59,6 +59,26 @@ Linux D-Bus bindings for Racket using libdbus-1.
  Calls remote procedure and returns whatever values it produces.
 }
 
+@defproc[(dbus-subscribe (bus dbus-connection?)
+                         (sender string?)
+                         (path string?)
+                         (iface string?)
+                         (signal string?)
+                         (handler any/c))
+         void?]{
+ Call handler on every matching signal.
+}
+
+@defproc[(dbus-unsubscribe (bus dbus-connection?)
+                           (sender string?)
+                           (path string?)
+                           (iface string?)
+                           (signal string?)
+                           (handler any/c))
+         void?]{
+ No longer call specified handler for matching signal.
+}
+
 @defproc[(dbus-variant (sign dbus-signature?)
                        (arg any/c) ...)
          dbus-variant?]{

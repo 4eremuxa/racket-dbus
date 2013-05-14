@@ -36,4 +36,10 @@
                       (DBusError-name error)))
 
 
+(define/contract (dbus-check-error error)
+                 (-> DBusError? void?)
+  (when (dbus_error_is_set error)
+    (raise (dbus-error->exception error))))
+
+
 ; vim:set ts=2 sw=2 et:

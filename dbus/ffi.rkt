@@ -106,6 +106,11 @@
     error))
 
 
+(define _DBusHandlerResult (_enum '(handled
+                                    not-yet-handled
+                                    need-memory)))
+
+
 (define _DBusFreeFunction
   (_fun _pointer --> _void))
 
@@ -130,6 +135,12 @@
 (define _DBusPendingCallNotifyFunction
   (_fun _DBusPendingCall-pointer _pointer --> _void))
 
+(define _DBusHandleMessageFunction
+  (_fun _DBusConnection-pointer
+        _DBusMessage-pointer
+        _pointer
+        --> _DBusHandlerResult))
+
 
 (define-dbus dbus_threads_init_default
              (_fun --> (result : _bool)
@@ -141,7 +152,7 @@
 (define-dbus dbus_bus_get
              (_fun _DBusBusType
                    (error : (_ptr io _DBusError) = (make-error))
-                   --> (result : (_or-null _DBusConnection-pointer))
+                   --> (result : _DBusConnection-pointer)
                    --> (begin
                          (when result
                            (register-finalizer result dbus_connection_unref))
@@ -152,6 +163,18 @@
                    (error : (_ptr io _DBusError) = (make-error))
                    --> (result : _bool)
                    --> (values result error)))
+
+(define-dbus dbus_bus_add_match
+             (_fun _DBusConnection-pointer
+                   _string/utf-8
+                   (_pointer = #f)
+                   --> _void))
+
+(define-dbus dbus_bus_remove_match
+             (_fun _DBusConnection-pointer
+                   _string/utf-8
+                   (_pointer = #f)
+                   --> _void))
 
 
 (define _DBusConnectionDispatchStatus (_enum '(data-remains
@@ -167,7 +190,7 @@
                    _DBusRemoveWatchFunction
                    _DBusWatchToggledFunction
                    (_pointer = #f)
-                   (_DBusFreeFunction = #f)
+                   (_DBusFreeFunction = dbus_free)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
@@ -177,7 +200,7 @@
                      _DBusRemoveTimeoutFunction
                      _DBusTimeoutToggledFunction
                      (_pointer = #f)
-                     (_DBusFreeFunction = #f)
+                     (_DBusFreeFunction = dbus_free)
                      --> (result : _bool)
                      --> (dbus-check-result result)))
 
@@ -208,6 +231,20 @@
 (define-dbus dbus_connection_get_dispatch_status
              (_fun _DBusConnection-pointer
                    --> _DBusConnectionDispatchStatus))
+
+(define-dbus dbus_connection_add_filter
+             (_fun _DBusConnection-pointer
+                   _DBusHandleMessageFunction
+                   (_pointer = #f)
+                   (_DBusFreeFunction = dbus_free)
+                   --> (result : _bool)
+                   --> (dbus-check-result result)))
+
+(define-dbus dbus_connection_remove_filter
+             (_fun _DBusConnection-pointer
+                   _DBusHandleMessageFunction
+                   (_pointer = #f)
+                   --> _void))
 
 
 (define _DBusMessageType (_enum '(invalid call return error signal)))
@@ -258,6 +295,22 @@
                    _DBusMessage-pointer
                    --> (result : _bool)
                    --> (if result error #f)))
+
+(define-dbus dbus_message_get_path
+             (_fun _DBusMessage-pointer
+                   --> _string/utf-8))
+
+(define-dbus dbus_message_get_interface
+             (_fun _DBusMessage-pointer
+                   --> _string/utf-8))
+
+(define-dbus dbus_message_get_member
+             (_fun _DBusMessage-pointer
+                   --> _string/utf-8))
+
+(define-dbus dbus_message_get_sender
+             (_fun _DBusMessage-pointer
+                   --> _string/utf-8))
 
 
 (define _DBusBasicValue (_union _uint8           ;  0
@@ -428,7 +481,7 @@
              (_fun _DBusPendingCall-pointer
                    _DBusPendingCallNotifyFunction
                    (_pointer = #f)
-                   (_DBusFreeFunction = #f)
+                   (_DBusFreeFunction = dbus_free)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
