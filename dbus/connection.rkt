@@ -113,7 +113,6 @@
 
                 ((DBusTimeout-pointer? subject)
                  (dbus_timeout_handle subject))
-                 ;)
 
                 (else
                  (let ((message (thread-receive)))
