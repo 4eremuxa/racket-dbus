@@ -79,13 +79,16 @@
           (signal (dbus_message_get_member msg)))
       (let ((key (list sender path iface signal)))
         (when (hash-has-key? (get-signals c) key)
-          (let ((handlers (hash-ref (get-signals c) key))
-                (args (dbus-unpack-raw msg)))
-            (set-for-each
-              (lambda (handler)
-                (thread
-                  (thunk (apply handler sender path iface signal args))))
-              handlers))))
+          (let ((handlers (hash-ref (get-signals c) key)))
+            (call-with-values
+              (thunk (dbus-unpack-raw msg))
+              (lambda args
+                (set-for-each
+                  handlers
+                  (lambda (handler)
+                    (thread
+                      (thunk (apply handler sender path
+                                    iface signal args))))))))))
       'handled)
     'not-yet-handled))
 
@@ -94,11 +97,11 @@
                  (-> dbus-connection? thread?)
   (thread
     (thunk
-      (define events (make-hasheq
+      (define events (make-hash
                        (list (cons (thread-receive-evt)
                                    (thread-receive-evt)))))
-      (define timeouts (make-hasheq))
-      (define ports (make-hasheq))
+      (define timeouts (make-hash))
+      (define ports (make-hash))
       (define dbc (dbus-connection-dbc c))
 
       (let loop ()
