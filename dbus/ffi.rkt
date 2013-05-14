@@ -149,7 +149,7 @@
 
 (define _DBusBusType (_enum '(session system starter)))
 
-(define-dbus dbus_bus_get
+(define-dbus dbus_bus_get_private
              (_fun _DBusBusType
                    (error : (_ptr io _DBusError) = (make-error))
                    --> (result : _DBusConnection-pointer)
@@ -189,8 +189,8 @@
                    _DBusAddWatchFunction
                    _DBusRemoveWatchFunction
                    _DBusWatchToggledFunction
-                   (_pointer = #f)
-                   (_DBusFreeFunction = dbus_free)
+                   _pointer
+                   (_DBusFreeFunction = #f)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
@@ -199,8 +199,8 @@
                      _DBusAddTimeoutFunction
                      _DBusRemoveTimeoutFunction
                      _DBusTimeoutToggledFunction
-                     (_pointer = #f)
-                     (_DBusFreeFunction = dbus_free)
+                     _pointer
+                     (_DBusFreeFunction = #f)
                      --> (result : _bool)
                      --> (dbus-check-result result)))
 
@@ -235,15 +235,15 @@
 (define-dbus dbus_connection_add_filter
              (_fun _DBusConnection-pointer
                    _DBusHandleMessageFunction
-                   (_pointer = #f)
-                   (_DBusFreeFunction = dbus_free)
+                   _pointer
+                   (_DBusFreeFunction = #f)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
 (define-dbus dbus_connection_remove_filter
              (_fun _DBusConnection-pointer
                    _DBusHandleMessageFunction
-                   (_pointer = #f)
+                   _pointer
                    --> _void))
 
 
@@ -480,8 +480,8 @@
 (define-dbus dbus_pending_call_set_notify
              (_fun _DBusPendingCall-pointer
                    _DBusPendingCallNotifyFunction
-                   (_pointer = #f)
-                   (_DBusFreeFunction = dbus_free)
+                   _pointer
+                   (_DBusFreeFunction = #f)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
