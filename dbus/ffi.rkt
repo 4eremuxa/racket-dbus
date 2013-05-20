@@ -177,9 +177,7 @@
                    --> _void))
 
 
-(define _DBusConnectionDispatchStatus (_enum '(data-remains
-                                               complete
-                                               need-memory)))
+(define _DBusDispatchStatus (_enum '(data-remains complete need-memory)))
 
 (define-dbus dbus_connection_unref
              (_fun _DBusConnection-pointer --> _void))
@@ -189,7 +187,7 @@
                    _DBusAddWatchFunction
                    _DBusRemoveWatchFunction
                    _DBusWatchToggledFunction
-                   _pointer
+                   (_pointer = #f)
                    (_DBusFreeFunction = #f)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
@@ -199,7 +197,7 @@
                      _DBusAddTimeoutFunction
                      _DBusRemoveTimeoutFunction
                      _DBusTimeoutToggledFunction
-                     _pointer
+                     (_pointer = #f)
                      (_DBusFreeFunction = #f)
                      --> (result : _bool)
                      --> (dbus-check-result result)))
@@ -226,16 +224,31 @@
 
 (define-dbus dbus_connection_dispatch
              (_fun _DBusConnection-pointer
-                   --> _DBusConnectionDispatchStatus))
+                   --> _DBusDispatchStatus))
 
 (define-dbus dbus_connection_get_dispatch_status
              (_fun _DBusConnection-pointer
-                   --> _DBusConnectionDispatchStatus))
+                   --> _DBusDispatchStatus))
+
+
+(define _DBusDispatchStatusFunction
+  (_fun _DBusConnection-pointer
+        _DBusDispatchStatus
+        _pointer
+        --> _void))
+
+
+(define-dbus dbus_connection_set_dispatch_status_function
+             (_fun _DBusConnection-pointer
+                   _DBusDispatchStatusFunction
+                   (_pointer = #f)
+                   (_DBusFreeFunction = #f)
+                   --> _void))
 
 (define-dbus dbus_connection_add_filter
              (_fun _DBusConnection-pointer
                    _DBusHandleMessageFunction
-                   _pointer
+                   (_pointer = #f)
                    (_DBusFreeFunction = #f)
                    --> (result : _bool)
                    --> (dbus-check-result result)))
@@ -243,7 +256,7 @@
 (define-dbus dbus_connection_remove_filter
              (_fun _DBusConnection-pointer
                    _DBusHandleMessageFunction
-                   _pointer
+                   (_pointer = #f)
                    --> _void))
 
 
