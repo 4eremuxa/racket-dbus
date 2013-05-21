@@ -67,11 +67,7 @@
 
 (define/contract (add-timeout-function timeout c)
                  (-> DBusTimeout-pointer? cpointer? boolean?)
-  (when (dbus_timeout_get_enabled timeout)
-    (let ((event (alarm-evt (+ (current-inexact-milliseconds)
-                               (dbus_timeout_get_interval timeout)))))
-      (hash-set! timeouts timeout event)
-      (add-event-handler event (thunk (dbus_timeout_handle timeout)))))
+  (timeout-toggle-function timeout c)
   #t)
 
 
@@ -85,14 +81,15 @@
 
 (define/contract (timeout-toggle-function timeout c)
                  (-> DBusTimeout-pointer? cpointer? void?)
-  (let ((event (hash-ref timeouts timeout #f)))
-    (when event
-      (cancel-event event)))
+  (remove-timeout-function timeout c)
   (when (dbus_timeout_get_enabled timeout)
     (let ((event (alarm-evt (+ (current-inexact-milliseconds)
                                (dbus_timeout_get_interval timeout)))))
       (hash-set! timeouts timeout event)
-      (add-event-handler event (thunk (dbus_timeout_handle timeout))))))
+      (add-event-handler event
+        (thunk
+          (dbus_timeout_handle timeout)
+          (timeout-toggle-function timeout c))))))
 
 
 (define/contract (dispatch-status-function dbc status c)
