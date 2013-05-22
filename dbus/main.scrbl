@@ -1,9 +1,10 @@
 #lang scribble/manual
 
-@require["main.rkt"]
+@require[(for-label dbus)
+         (for-label racket)]
 
 @title{D-Bus}
-@author{@(author+email "Jan Dvorak" "mordae@anilinux.org")}
+@author+email["Jan Dvorak" "mordae@anilinux.org"]
 
 Linux D-Bus bindings for Racket using libdbus-1.
 
@@ -27,6 +28,10 @@ Linux D-Bus bindings for Racket using libdbus-1.
  Determines whether the value is a D-Bus connection.
 }
 
+@defproc[(dbus-signature? (v any/c)) boolean?]{
+ Determines whether the value is a valid D-Bus method signature.
+}
+
 @defproc[(dbus-send (bus dbus-connection?)
                     (target string?)
                     (path string?)
@@ -42,7 +47,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
                       (path string?)
                       (iface string?)
                       (name string?)
-                      (sign? dbus-signature?)
+                      (sign dbus-signature?)
                       (arg any/c) ...)
          void?]{
  Send D-Bus signal.
@@ -97,7 +102,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
  Return the variant signature.
 }
 
-@defmodule[(dbus-variant-value (v dbus-variant?)) any/c]{
+@defproc[(dbus-variant-value (v dbus-variant?)) any/c]{
  Return the variant value.
 }
 
