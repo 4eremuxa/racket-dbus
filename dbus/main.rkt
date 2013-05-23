@@ -5,10 +5,10 @@
 
 (require racket/contract)
 
-(require "common.rkt"
-         "connection.rkt"
-         "message.rkt"
-         "ffi.rkt")
+(require "private/common.rkt"
+         "private/connection.rkt"
+         "private/message.rkt"
+         "private/ffi.rkt")
 
 
 (provide exn:fail:dbus?
