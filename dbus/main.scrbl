@@ -32,32 +32,32 @@ Linux D-Bus bindings for Racket using libdbus-1.
  Determines whether the value is a valid D-Bus method signature.
 }
 
-@defproc[(dbus-send (bus dbus-connection?)
-                    (target string?)
-                    (path string?)
-                    (iface string?)
-                    (method string?)
-                    (sign dbus-signature?)
-                    (arg any/c) ...)
+@defproc[(dbus-send-message (bus dbus-connection?)
+                            (target dbus-bus-name?)
+                            (path dbus-object-path?)
+                            (iface dbus-interface-name?)
+                            (method dbus-member-name?)
+                            (sign dbus-signature?)
+                            (arg any/c) ...)
          void?]{
  Send message without expecting a reply.
 }
 
-@defproc[(dbus-signal (bus dbus-connection?)
-                      (path string?)
-                      (iface string?)
-                      (name string?)
-                      (sign dbus-signature?)
-                      (arg any/c) ...)
+@defproc[(dbus-send-signal (bus dbus-connection?)
+                           (path dbus-object-path?)
+                           (iface dbus-interface-name?)
+                           (name dbus-member-name?)
+                           (sign dbus-signature?)
+                           (arg any/c) ...)
          void?]{
  Send D-Bus signal.
 }
 
 @defproc[(dbus-call (bus dbus-connection?)
-                    (target string?)
-                    (path string?)
-                    (iface string?)
-                    (method string?)
+                    (target dbus-bus-name?)
+                    (path dbus-object-path?)
+                    (iface dbus-interface-name?)
+                    (method dbus-member-name?)
                     (sign dbus-signature?)
                     (arg any/c) ...)
          any]{
@@ -65,20 +65,20 @@ Linux D-Bus bindings for Racket using libdbus-1.
 }
 
 @defproc[(dbus-subscribe (bus dbus-connection?)
-                         (sender string?)
-                         (path string?)
-                         (iface string?)
-                         (signal string?)
+                         (sender dbus-bus-name?)
+                         (path dbus-object-path?)
+                         (iface dbus-interface-name?)
+                         (signal dbus-member-name?)
                          (handler any/c))
          void?]{
  Call handler on every matching signal.
 }
 
 @defproc[(dbus-unsubscribe (bus dbus-connection?)
-                           (sender string?)
-                           (path string?)
-                           (iface string?)
-                           (signal string?)
+                           (sender dbus-bus-name?)
+                           (path dbus-object-path?)
+                           (iface dbus-interface-name?)
+                           (signal dbus-member-name?)
                            (handler any/c))
          void?]{
  No longer call specified handler for matching signal.

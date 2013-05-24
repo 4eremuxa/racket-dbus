@@ -15,10 +15,16 @@
          exn:fail:dbus-name
          dbus-connection?
          dbus-signature?
+         dbus-interface-name?
+         dbus-bus-name?
+         dbus-well-known-name?
+         dbus-unique-name?
+         dbus-object-path?
+         dbus-member-name?
          dbus-open
-         dbus-send
          dbus-call
-         dbus-signal
+         dbus-send-message
+         dbus-send-signal
          dbus-subscribe
          dbus-unsubscribe
          dbus-variant
@@ -27,8 +33,12 @@
          dbus-variant?)
 
 
-(define/contract (dbus-send bus target path iface method sign . args)
-                 (->* (dbus-connection? string? string? string? string?
+(define/contract (dbus-send-message bus target path iface method sign . args)
+                 (->* (dbus-connection?
+                       dbus-bus-name?
+                       dbus-object-path?
+                       dbus-interface-name?
+                       dbus-member-name?
                        dbus-signature?)
                       () #:rest list? void?)
   (let ((message (dbus_message_new_method_call target path iface method)))
@@ -37,8 +47,11 @@
     (dbus-send-raw bus message)))
 
 
-(define/contract (dbus-signal bus path iface name sign . args)
-                 (->* (dbus-connection? string? string? string?
+(define/contract (dbus-send-signal bus path iface name sign . args)
+                 (->* (dbus-connection?
+                       dbus-object-path?
+                       dbus-interface-name?
+                       dbus-member-name?
                        dbus-signature?)
                       () #:rest list? void?)
   (let ((message (dbus_message_new_signal path iface name)))
@@ -47,7 +60,11 @@
 
 
 (define/contract (dbus-call bus target path iface method sign . args)
-                 (->* (dbus-connection? string? string? string? string?
+                 (->* (dbus-connection?
+                       dbus-bus-name?
+                       dbus-object-path?
+                       dbus-interface-name?
+                       dbus-member-name?
                        dbus-signature?)
                       () #:rest list? any)
   (let ((message (dbus_message_new_method_call target path iface method)))
