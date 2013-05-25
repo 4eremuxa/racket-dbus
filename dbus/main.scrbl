@@ -10,6 +10,8 @@ Linux D-Bus bindings for Racket using libdbus-1.
 
 @defmodule[dbus]
 
+@section{Messages}
+
 @defproc[(exn:fail:dbus? (v any/c)) boolean?]{
  Determines whether the value is a D-Bus exception.
 }
@@ -28,8 +30,14 @@ Linux D-Bus bindings for Racket using libdbus-1.
  Determines whether the value is a D-Bus connection.
 }
 
-@defproc[(dbus-signature? (v any/c)) boolean?]{
- Determines whether the value is a valid D-Bus method signature.
+@deftogether[(@defproc[(dbus-signature? (v any/c)) boolean?]
+              @defproc[(dbus-interface-name? (v any/c)) boolean?]
+              @defproc[(dbus-bus-name? (v any/c)) boolean?]
+              @defproc[(dbus-well-known-name? (v any/c)) boolean?]
+              @defproc[(dbus-unique-name? (v any/c)) boolean?]
+              @defproc[(dbus-object-path? (v any/c)) boolean?]
+              @defproc[(dbus-member-name? (v any/c)) boolean?])]{
+ Determines whether the value is a valid D-Bus string of respective type.
 }
 
 @defproc[(dbus-send-message (bus dbus-connection?)
@@ -105,5 +113,9 @@ Linux D-Bus bindings for Racket using libdbus-1.
 @defproc[(dbus-variant-value (v dbus-variant?)) any/c]{
  Return the variant value.
 }
+
+
+@include-section["proxy.scrbl"]
+@include-section["introspection.scrbl"]
 
 @; vim:set ft=scribble sw=2 ts=2 et:
