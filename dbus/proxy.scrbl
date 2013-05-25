@@ -53,6 +53,16 @@ even take care about signatures.
  A member signal.
 }
 
+@defproc[(dbus-signal-subscribe (signal dbus-signal?)
+                                (handler procedure?)) void?]{
+ Subscribe to specified signal.
+}
+
+@defproc[(dbus-signal-unsubscribe (signal dbus-signal?)
+                                  (handler procedure?)) void?]{
+ Unsubscribe from specified signal.
+}
+
 @defstruct[dbus-object ((bus         dbus-connection?)
                         (endpoint    dbus-bus-name?)
                         (path        dbus-object-path?)
@@ -87,5 +97,16 @@ even take care about signatures.
  Set value of proxied object's property.
 }
 
+@defproc[(dbus-object-subscribe (object dbus-object?)
+                                (signal dbus-member-name?)
+                                (handler procedure?)) void?]{
+ Subscribe to specified object's signal.
+}
+
+@defproc[(dbus-object-unsubscribe (object dbus-object?)
+                                  (signal dbus-member-name?)
+                                  (handler procedure?)) void?]{
+ Unsubscribe from specified object's signal.
+}
 
 @; vim:set ft=scribble sw=2 ts=2 et:
