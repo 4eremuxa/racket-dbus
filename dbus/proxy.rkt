@@ -56,6 +56,28 @@
                            args))
 
 
+(define/contract (dbus-property-get property)
+                 (-> dbus-property? any)
+  (dbus-call (dbus-member-bus property)
+             (dbus-member-endpoint property)
+             (dbus-member-path property)
+             "org.freedesktop.DBus.Properties" "Get"
+             "ss" (dbus-member-interface property)
+                  (dbus-member-name property)))
+
+
+(define/contract (dbus-property-set! property . value)
+                 (->* (dbus-property?) () #:rest list? any)
+  (apply dbus-call (dbus-member-bus property)
+                   (dbus-member-endpoint property)
+                   (dbus-member-path property)
+                   "org.freedesktop.DBus.Properties" "Set"
+                   "ssv" (dbus-member-interface property)
+                         (dbus-member-name property)
+                         (dbus-variant (dbus-member-signature property)
+                                       value)))
+
+
 (define/contract (dbus-object-call object method . args)
                  (->* (dbus-object? dbus-member-name?)
                       () #:rest list? any)
@@ -72,20 +94,13 @@
 
 (define/contract (dbus-object-get object property)
                  (-> dbus-object? dbus-member-name? any)
-  (let ((property (hash-ref (dbus-object-properties object) property))
-        (method   (hash-ref (dbus-object-methods object) "Get")))
-    (dbus-method-call method (dbus-member-interface property)
-                             (dbus-member-name property))))
+  (dbus-property-get (hash-ref (dbus-object-properties object) property)))
 
 
 (define/contract (dbus-object-set! object property . value)
                  (->* (dbus-object? dbus-member-name?) () #:rest list? any)
-  (let ((property (hash-ref (dbus-object-properties object) property))
-        (method   (hash-ref (dbus-object-methods object) "Set")))
-    (dbus-method-call method (dbus-member-interface property)
-                             (dbus-member-name property)
-                             (dbus-variant (dbus-member-signature property)
-                                           value))))
+  (apply dbus-property-set! (hash-ref (dbus-object-properties object) property)
+                            value))
 
 
 ; vim:set ts=2 sw=2 et:
