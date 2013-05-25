@@ -103,11 +103,10 @@
                  (-> DBusConnection-pointer? DBusMessage-pointer?
                      cpointer? (one-of/c 'handled 'not-yet-handled))
   (if (eq? (dbus_message_get_type msg) 'signal)
-    (let ((sender (dbus_message_get_sender msg))
-          (path   (dbus_message_get_path msg))
+    (let ((path   (dbus_message_get_path msg))
           (iface  (dbus_message_get_interface msg))
           (signal (dbus_message_get_member msg)))
-      (let ((key (list dbc sender path iface signal)))
+      (let ((key (list dbc path iface signal)))
         (let ((handlers (hash-ref signals key (set))))
           (call-with-values
             (thunk (dbus-unpack-raw msg))
@@ -116,8 +115,7 @@
                 handlers
                 (lambda (handler)
                   (thread
-                    (thunk (apply handler sender path
-                                  iface signal args)))))))))
+                    (thunk (apply handler path iface signal args)))))))))
       'handled)
     'not-yet-handled))
 
@@ -184,31 +182,27 @@
       message)))
 
 
-(define/contract (dbus-subscribe bus sender path iface signal handler)
-                 (-> dbus-connection? string? string? string? string?
-                     procedure? void?)
+(define/contract (dbus-subscribe bus path iface signal handler)
+                 (-> dbus-connection? string? string? string? procedure? void?)
   (let* ((dbc (dbus-connection-dbc bus))
-         (key (list dbc sender path iface signal)))
+         (key (list dbc path iface signal)))
       (hash-set! signals key (set-add (hash-ref signals key (set)) handler))
       (dbus_bus_add_match dbc
         (string-append "type='signal',"
-                       "sender='" sender "',"
                        "interface='" iface "',"
                        "member='" signal "',"
                        "path='" path "'"))))
 
 
-(define/contract (dbus-unsubscribe bus sender path iface signal handler)
-                 (-> dbus-connection? string? string? string? string?
-                     procedure? void?)
+(define/contract (dbus-unsubscribe bus path iface signal handler)
+                 (-> dbus-connection? string? string? string? procedure? void?)
   (let* ((dbc (dbus-connection-dbc bus))
-         (key (list sender path iface signal)))
+         (key (list path iface signal)))
     (let ((items (set-remove (hash-ref signals key (set)) handler)))
       (if (= 0 (set-count items))
         (begin
           (dbus_bus_remove_match bus
             (string-append "type='signal',"
-                           "sender='" sender "',"
                            "interface='" iface "',"
                            "member='" signal "',"
                            "path='" path "'"))
