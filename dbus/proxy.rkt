@@ -78,6 +78,26 @@
                                        value)))
 
 
+(define/contract (dbus-signal-subscribe signal handler)
+                 (-> dbus-signal? procedure? void?)
+  (dbus-subscribe (dbus-member-bus signal)
+                  (dbus-member-endpoint signal)
+                  (dbus-member-path signal)
+                  (dbus-member-interface signal)
+                  (dbus-member-name signal)
+                  handler))
+
+
+(define/contract (dbus-signal-unsubscribe signal handler)
+                 (-> dbus-signal? procedure? void?)
+  (dbus-unsubscribe (dbus-member-bus signal)
+                    (dbus-member-endpoint signal)
+                    (dbus-member-path signal)
+                    (dbus-member-interface signal)
+                    (dbus-member-name signal)
+                    handler))
+
+
 (define/contract (dbus-object-call object method . args)
                  (->* (dbus-object? dbus-member-name?)
                       () #:rest list? any)
@@ -101,6 +121,18 @@
                  (->* (dbus-object? dbus-member-name?) () #:rest list? any)
   (apply dbus-property-set! (hash-ref (dbus-object-properties object) property)
                             value))
+
+
+(define/contract (dbus-object-subscribe object signal handler)
+                 (-> dbus-object? dbus-member-name? procedure? void?)
+  (dbus-signal-subscribe (hash-ref (dbus-object-signals object) signal)
+                         handler))
+
+
+(define/contract (dbus-object-unsubscribe object signal handler)
+                 (-> dbus-object? dbus-member-name? procedure? void?)
+  (dbus-signal-unsubscribe (hash-ref (dbus-object-signals object) signal)
+                           handler))
 
 
 ; vim:set ts=2 sw=2 et:

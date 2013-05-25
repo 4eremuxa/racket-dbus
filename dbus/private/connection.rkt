@@ -185,8 +185,8 @@
 
 
 (define/contract (dbus-subscribe bus sender path iface signal handler)
-                 (-> dbus-connection? string? string? string? string? any/c
-                     void?)
+                 (-> dbus-connection? string? string? string? string?
+                     procedure? void?)
   (let* ((dbc (dbus-connection-dbc bus))
          (key (list dbc sender path iface signal)))
       (hash-set! signals key (set-add (hash-ref signals key (set)) handler))
@@ -199,8 +199,8 @@
 
 
 (define/contract (dbus-unsubscribe bus sender path iface signal handler)
-                 (-> dbus-connection? string? string? string? string? any/c
-                     void?)
+                 (-> dbus-connection? string? string? string? string?
+                     procedure? void?)
   (let* ((dbc (dbus-connection-dbc bus))
          (key (list sender path iface signal)))
     (let ((items (set-remove (hash-ref signals key (set)) handler)))

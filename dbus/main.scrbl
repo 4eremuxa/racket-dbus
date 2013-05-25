@@ -77,7 +77,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
                          (path dbus-object-path?)
                          (iface dbus-interface-name?)
                          (signal dbus-member-name?)
-                         (handler any/c))
+                         (handler procedure?))
          void?]{
  Call handler on every matching signal.
 }
@@ -87,7 +87,7 @@ Linux D-Bus bindings for Racket using libdbus-1.
                            (path dbus-object-path?)
                            (iface dbus-interface-name?)
                            (signal dbus-member-name?)
-                           (handler any/c))
+                           (handler procedure?))
          void?]{
  No longer call specified handler for matching signal.
 }
