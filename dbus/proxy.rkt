@@ -3,7 +3,8 @@
 ; D-Bus Object Proxies
 ;
 
-(require racket/contract)
+(require racket/contract
+         racket/dict)
 
 (require "main.rkt"
          "private/util.rkt")
@@ -113,6 +114,12 @@
 (define/contract (dbus-object-get object property)
                  (-> dbus-object? dbus-member-name? any)
   (dbus-property-get (hash-ref (dbus-object-properties object) property)))
+
+
+(define/contract (dbus-object-get-all object)
+                 (-> dbus-object? list?)
+  (for/list ((prop (in-dict-pairs (dbus-object-properties object))))
+    (cons (car prop) (dbus-property-get (cdr prop)))))
 
 
 (define/contract (dbus-object-set! object property . value)
