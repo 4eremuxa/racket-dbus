@@ -129,6 +129,8 @@
     (when (dbus_error_is_set error)
       (raise (dbus-error->exception error)))
 
+    (dbus_connection_set_exit_on_disconnect dbc #f)
+
     (let ((connection (make-dbus-connection dbc)))
       (dbus_connection_add_filter dbc
         (bind-wrapper dbc filter-function))

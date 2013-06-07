@@ -165,8 +165,16 @@
                    --> (result : _DBusConnection-pointer/null)
                    --> (and result
                             (values
-                              (with-finalizer result dbus_connection_unref)
+                              (with-finalizer result
+                                (lambda (result)
+                                  (dbus_connection_close result)
+                                  (dbus_connection_unref result)))
                               error))))
+
+(define-dbus dbus_connection_set_exit_on_disconnect
+             (_fun _DBusConnection-pointer
+                   _bool
+                   --> _void))
 
 (define-dbus dbus_bus_register
              (_fun _DBusConnection-pointer
@@ -190,6 +198,9 @@
 (define _DBusDispatchStatus (_enum '(data-remains complete need-memory)))
 
 (define-dbus dbus_connection_unref
+             (_fun _DBusConnection-pointer --> _void))
+
+(define-dbus dbus_connection_close
              (_fun _DBusConnection-pointer --> _void))
 
 (define-dbus dbus_connection_set_watch_functions
