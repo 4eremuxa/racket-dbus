@@ -131,20 +131,20 @@
 
     (let ((connection (make-dbus-connection dbc)))
       (dbus_connection_add_filter dbc
-        filter-function)
+        (bind-wrapper dbc filter-function))
 
       (dbus_connection_set_dispatch_status_function dbc
-        dispatch-status-function)
+        (bind-wrapper dbc dispatch-status-function))
 
       (dbus_connection_set_watch_functions dbc
-        add-watch-function
-        remove-watch-function
-        watch-toggled-function)
+        (bind-wrapper dbc add-watch-function)
+        (bind-wrapper dbc remove-watch-function)
+        (bind-wrapper dbc watch-toggled-function))
 
       (dbus_connection_set_timeout_functions dbc
-        add-timeout-function
-        remove-timeout-function
-        timeout-toggle-function)
+        (bind-wrapper dbc add-timeout-function)
+        (bind-wrapper dbc remove-timeout-function)
+        (bind-wrapper dbc timeout-toggle-function))
 
       (dispatch-status-function dbc 'initial-dispatch #f)
       connection)))
