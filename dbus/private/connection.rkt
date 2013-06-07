@@ -173,7 +173,7 @@
          (cell         (malloc-immobile-cell channel)))
 
     (unless pending-call
-      (throw exn:fail:dbus "failed to send message"))
+      (throw exn:fail:dbus "failed to send message" "unknown"))
 
     (dbus_pending_call_set_notify pending-call
                                   pending-call-notify-function
