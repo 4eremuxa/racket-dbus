@@ -157,12 +157,6 @@
   (dbus_connection_send (dbus-connection-dbc bus) message))
 
 
-(define/contract (pending-call-notify-function pending-call cell)
-                 (-> DBusPendingCall-pointer? cpointer? void?)
-  (async-channel-put (ptr-ref cell _scheme) #t)
-  (free-immobile-cell cell))
-
-
 (define/contract (dbus-call-raw bus message)
                  (-> dbus-connection?
                      DBusMessage-pointer?
@@ -174,14 +168,13 @@
     (unless pending-call
       (throw exn:fail:dbus "failed to send message" "unknown"))
 
-    (dbus_pending_call_set_notify pending-call
-                                  pending-call-notify-function
-                                  (malloc-immobile-cell channel))
-
-    (when (dbus_pending_call_get_completed pending-call)
-      (async-channel-put channel #t))
-
-    (async-channel-get channel)
+    (let* ((notify-callback (lambda (pending-call dummy)
+                              (async-channel-put channel #t)))
+           (boxee (box notify-callback)))
+      (dbus_pending_call_set_notify pending-call notify-callback #f)
+      (unless (dbus_pending_call_get_completed pending-call)
+        (async-channel-get channel))
+      (set-box! boxee #f))
 
     (let* ((message (dbus_pending_call_steal_reply pending-call))
            (error   (dbus_set_error_from_message message)))
