@@ -159,9 +159,8 @@
 
 (define/contract (pending-call-notify-function pending-call cell)
                  (-> DBusPendingCall-pointer? cpointer? void?)
-  (let ((message (dbus_pending_call_steal_reply pending-call)))
-    (async-channel-put (ptr-ref cell _scheme) message)
-    (free-immobile-cell cell)))
+  (async-channel-put (ptr-ref cell _scheme) #t)
+  (free-immobile-cell cell))
 
 
 (define/contract (dbus-call-raw bus message)
@@ -170,7 +169,7 @@
                      DBusMessage-pointer?)
   (let* ((pending-call (dbus_connection_send_with_reply
                          (dbus-connection-dbc bus) message -1))
-         (channel      (make-async-channel 1))
+         (channel      (make-async-channel))
          (cell         (malloc-immobile-cell channel)))
 
     (unless pending-call
@@ -180,7 +179,12 @@
                                   pending-call-notify-function
                                   cell)
 
-    (let* ((message (async-channel-get channel))
+    (when (dbus_pending_call_get_completed pending-call)
+      (async-channel-put channel #t))
+
+    (async-channel-get channel)
+
+    (let* ((message (dbus_pending_call_steal_reply pending-call))
            (error   (dbus_set_error_from_message message)))
       (when error
         (raise (dbus-error->exception error)))
