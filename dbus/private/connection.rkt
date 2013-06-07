@@ -169,15 +169,14 @@
                      DBusMessage-pointer?)
   (let* ((pending-call (dbus_connection_send_with_reply
                          (dbus-connection-dbc bus) message -1))
-         (channel      (make-async-channel))
-         (cell         (malloc-immobile-cell channel)))
+         (channel      (make-async-channel)))
 
     (unless pending-call
       (throw exn:fail:dbus "failed to send message" "unknown"))
 
     (dbus_pending_call_set_notify pending-call
                                   pending-call-notify-function
-                                  cell)
+                                  (malloc-immobile-cell channel))
 
     (when (dbus_pending_call_get_completed pending-call)
       (async-channel-put channel #t))
