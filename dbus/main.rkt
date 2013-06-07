@@ -69,8 +69,7 @@
                       () #:rest list? any)
   (let ((message (dbus_message_new_method_call target path iface method)))
     (apply dbus-append-raw message sign args)
-    (dbus-unpack-raw
-      (dbus-call-raw bus message))))
+    (dbus-unpack-raw (dbus-call-raw bus message))))
 
 
 ; vim:set ts=2 sw=2 et:

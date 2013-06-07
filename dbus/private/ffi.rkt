@@ -16,6 +16,12 @@
 (define-ffi-definer define-dbus (ffi-lib "libdbus-1" '("3")))
 
 
+(define (with-finalizer result finalizer)
+  (when result
+    (register-finalizer result finalizer))
+  result)
+
+
 (define (_string/utf-8/free free-func)
   (make-ctype _bytes
               string->bytes/utf-8
@@ -54,7 +60,11 @@
 (define-cstruct _DBusError
   ((name     _string/utf-8)
    (message  _string/utf-8)
-   (dummy    _uint)
+   (dummy1   _uint)
+   (dummy2   _uint)
+   (dummy3   _uint)
+   (dummy4   _uint)
+   (dummy5   _uint)
    (padding  _pointer)))
 
 
@@ -99,7 +109,7 @@
 
 (define/contract (make-error)
                  (-> DBusError?)
-  (let ((error (make-DBusError #f #f 0 #f)))
+  (let ((error (make-DBusError #f #f 0 0 0 0 0 #f)))
     (begin
       (dbus_error_init error)
       (register-finalizer error dbus_error_free))
@@ -152,11 +162,11 @@
 (define-dbus dbus_bus_get_private
              (_fun _DBusBusType
                    (error : (_ptr io _DBusError) = (make-error))
-                   --> (result : _DBusConnection-pointer)
-                   --> (begin
-                         (when result
-                           (register-finalizer result dbus_connection_unref))
-                         (values result error))))
+                   --> (result : _DBusConnection-pointer/null)
+                   --> (and result
+                            (values
+                              (with-finalizer result dbus_connection_unref)
+                              error))))
 
 (define-dbus dbus_bus_register
              (_fun _DBusConnection-pointer
@@ -212,15 +222,12 @@
 (define-dbus dbus_connection_send_with_reply
              (_fun _DBusConnection-pointer
                    _DBusMessage-pointer
-                   (pending-call : (_ptr o _DBusPendingCall-pointer))
+                   (pending-call : (_ptr o _DBusPendingCall-pointer/null))
                    _int
                    --> (result : _bool)
-                   --> (if result
-                         (begin
-                           (register-finalizer pending-call
-                                               dbus_pending_call_unref)
-                           pending-call)
-                         #f)))
+                   --> (and result
+                            (with-finalizer pending-call
+                                            dbus_pending_call_unref))))
 
 (define-dbus dbus_connection_dispatch
              (_fun _DBusConnection-pointer
@@ -270,19 +277,15 @@
                    _string/utf-8
                    _string/utf-8
                    _string/utf-8
-                   --> (result : _DBusMessage-pointer)
-                   --> (begin
-                         (register-finalizer result dbus_message_unref)
-                         result)))
+                   --> (result : _DBusMessage-pointer/null)
+                   --> (with-finalizer result dbus_message_unref)))
 
 (define-dbus dbus_message_new_signal
              (_fun _string/utf-8
                    _string/utf-8
                    _string/utf-8
-                   --> (result : _DBusMessage-pointer)
-                   --> (begin
-                         (register-finalizer result dbus_message_unref)
-                         result)))
+                   --> (result : _DBusMessage-pointer/null)
+                   --> (with-finalizer result dbus_message_unref)))
 
 (define-dbus dbus_message_set_no_reply
              (_fun _DBusMessage-pointer
@@ -307,7 +310,7 @@
              (_fun (error : (_ptr io _DBusError) = (make-error))
                    _DBusMessage-pointer
                    --> (result : _bool)
-                   --> (if result error #f)))
+                   --> (and result error)))
 
 (define-dbus dbus_message_get_path
              (_fun _DBusMessage-pointer
@@ -498,12 +501,14 @@
                    --> (result : _bool)
                    --> (dbus-check-result result)))
 
+(define-dbus dbus_pending_call_get_completed
+             (_fun _DBusPendingCall-pointer
+                   --> _bool))
+
 (define-dbus dbus_pending_call_steal_reply
              (_fun _DBusPendingCall-pointer
-                   --> (result : _DBusMessage-pointer)
-                   --> (begin
-                         (register-finalizer result dbus_message_unref)
-                         result)))
+                   --> (result : _DBusMessage-pointer/null)
+                   --> (with-finalizer result dbus_message_unref)))
 
 
 (define-dbus dbus_timeout_get_interval

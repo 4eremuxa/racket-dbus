@@ -9,6 +9,7 @@
          "message.rkt")
 
 (require (rename-in ffi/unsafe (-> -->))
+         racket/async-channel
          racket/contract
          racket/function
          racket/list
@@ -158,7 +159,9 @@
 
 (define/contract (pending-call-notify-function pending-call cell)
                  (-> DBusPendingCall-pointer? cpointer? void?)
-  (semaphore-post (ptr-ref cell _scheme)))
+  (let ((message (dbus_pending_call_steal_reply pending-call)))
+    (async-channel-put (ptr-ref cell _scheme) message)
+    (free-immobile-cell cell)))
 
 
 (define/contract (dbus-call-raw bus message)
@@ -167,18 +170,20 @@
                      DBusMessage-pointer?)
   (let* ((pending-call (dbus_connection_send_with_reply
                          (dbus-connection-dbc bus) message -1))
-         (semaphore    (make-semaphore))
-         (cell         (malloc-immobile-cell semaphore)))
+         (channel      (make-async-channel 1))
+         (cell         (malloc-immobile-cell channel)))
+
+    (unless pending-call
+      (throw exn:fail:dbus "failed to send message"))
 
     (dbus_pending_call_set_notify pending-call
                                   pending-call-notify-function
                                   cell)
-    (semaphore-wait semaphore)
-    (free-immobile-cell cell)
 
-    (let ((message (dbus_pending_call_steal_reply pending-call)))
-      (when (eq? (dbus_message_get_type message) 'error)
-        (raise (dbus-error->exception (dbus_set_error_from_message message))))
+    (let* ((message (async-channel-get channel))
+           (error   (dbus_set_error_from_message message)))
+      (when error
+        (raise (dbus-error->exception error)))
       message)))
 
 

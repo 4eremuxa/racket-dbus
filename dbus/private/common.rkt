@@ -16,6 +16,10 @@
   #:transparent)
 
 
+(define-syntax-rule (throw exn msg arg ...)
+  (raise (exn msg (current-continuation-marks) arg ...)))
+
+
 (define/contract (dbus-signature? v)
                  (-> any/c boolean?)
   (and (string? v)
@@ -92,9 +96,9 @@
 
 (define/contract (dbus-error->exception error)
                  (-> DBusError? exn:fail:dbus?)
-  (make-exn:fail:dbus (DBusError-message error)
-                      (current-continuation-marks)
-                      (DBusError-name error)))
+  (exn:fail:dbus (DBusError-message error)
+                 (current-continuation-marks)
+                 (DBusError-name error)))
 
 
 (define/contract (dbus-check-error error)
