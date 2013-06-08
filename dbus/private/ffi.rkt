@@ -7,7 +7,8 @@
 (require racket/contract
          racket/match
          (rename-in ffi/unsafe (-> -->))
-         ffi/unsafe/define)
+         ffi/unsafe/define
+         main-loop)
 
 (provide (all-defined-out))
 
@@ -231,12 +232,15 @@
                    --> (if result serial #f)))
 
 (define-dbus dbus_connection_send_with_reply
-             (_fun _DBusConnection-pointer
-                   _DBusMessage-pointer
+             (_fun (dbc : _DBusConnection-pointer)
+                   (msg : _DBusMessage-pointer)
                    (pending-call : (_ptr o _DBusPendingCall-pointer/null))
                    _int
                    --> (result : _bool)
                    --> (and result
+                            pending-call
+                            (retain-parent dbc pending-call)
+                            (retain-parent pending-call msg)
                             (with-finalizer pending-call
                                             dbus_pending_call_unref))))
 
@@ -445,36 +449,36 @@
                    --> _bool))
 
 (define-dbus dbus_message_iter_init
-             (_fun _DBusMessage-pointer
+             (_fun (msg : _DBusMessage-pointer)
                    (iter : (_ptr o _DBusMessageIter))
                    --> (result : _bool)
-                   --> (if result iter #f)))
+                   --> (and result (retain-parent msg iter))))
 
 (define-dbus dbus_message_iter_init_append
-             (_fun _DBusMessage-pointer
+             (_fun (msg : _DBusMessage-pointer)
                    (iter : (_ptr o _DBusMessageIter))
                    --> _void
-                   --> iter))
+                   --> (retain-parent msg iter)))
 
 (define-dbus dbus_message_iter_next
              (_fun _DBusMessageIter-pointer
                    --> _bool))
 
 (define-dbus dbus_message_iter_open_container
-             (_fun _DBusMessageIter-pointer
+             (_fun (parent : _DBusMessageIter-pointer)
                    _DBusType
                    _string/utf-8
                    (sub : (_ptr o _DBusMessageIter))
                    --> (result : _bool)
                    --> (begin
                          (dbus-check-result result)
-                         sub)))
+                         (retain-parent parent sub))))
 
 (define-dbus dbus_message_iter_recurse
-             (_fun _DBusMessageIter-pointer
+             (_fun (parent : _DBusMessageIter-pointer)
                    (sub : (_ptr o _DBusMessageIter))
                    --> _void
-                   --> sub))
+                   --> (retain-parent parent sub)))
 
 
 (define _DBusWatchFlags (_bitmask '(readable = 1
@@ -505,8 +509,8 @@
                    --> _void))
 
 (define-dbus dbus_pending_call_set_notify
-             (_fun _DBusPendingCall-pointer
-                   _DBusPendingCallNotifyFunction
+             (_fun (pending-call : _DBusPendingCall-pointer)
+                   (notify : _DBusPendingCallNotifyFunction)
                    _pointer
                    (_DBusFreeFunction = #f)
                    --> (result : _bool)
@@ -551,10 +555,10 @@
                    --> _bool))
 
 (define-dbus dbus_signature_iter_recurse
-             (_fun _DBusSignatureIter-pointer
+             (_fun (parent : _DBusSignatureIter-pointer)
                    (sub : (_ptr o _DBusSignatureIter))
                    --> _void
-                   --> sub))
+                   --> (retain-parent parent sub)))
 
 (define-dbus dbus_signature_iter_get_signature
              (_fun _DBusSignatureIter-pointer
