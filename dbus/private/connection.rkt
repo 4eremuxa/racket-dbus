@@ -163,26 +163,27 @@
                  (-> dbus-connection?
                      DBusMessage-pointer?
                      DBusMessage-pointer?)
-  (let* ((pending-call (dbus_connection_send_with_reply
-                         (dbus-connection-dbc bus) message -1))
-         (channel      (make-async-channel)))
+  (let ((pending-call (dbus_connection_send_with_reply
+                        (dbus-connection-dbc bus) message -1)))
 
     (unless pending-call
       (throw exn:fail:dbus "failed to send message" "unknown"))
 
-    (let* ((notify-callback (lambda (pending-call dummy)
-                              (async-channel-put channel #t)))
-           (boxee (box notify-callback)))
+    (let* ((channel         (make-async-channel))
+           (notify-callback (bind-wrapper pending-call
+                              (lambda (pending-call dummy)
+                                (async-channel-put channel #t)))))
+
       (dbus_pending_call_set_notify pending-call notify-callback #f)
+
       (unless (dbus_pending_call_get_completed pending-call)
         (async-channel-get channel))
-      (set-box! boxee #f))
 
-    (let* ((message (dbus_pending_call_steal_reply pending-call))
-           (error   (dbus_set_error_from_message message)))
-      (when error
-        (raise (dbus-error->exception error)))
-      message)))
+      (let* ((message (dbus_pending_call_steal_reply pending-call))
+             (error   (dbus_set_error_from_message message)))
+        (when error
+          (raise (dbus-error->exception error)))
+        message))))
 
 
 (define/contract (dbus-subscribe bus path iface signal handler)
